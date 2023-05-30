@@ -9,9 +9,9 @@ const HORIZONTAL_MARGIN = 40;
 let VERTICAL_MARGIN = window.innerWidth / 3 + 40;
 
 
-const MOBILE = window.width < 800;
-if (MOBILE) {
-    VERTICAL_MARGIN = 40;
+const MOBILE = false;
+if (!MOBILE) {
+    VERTICAL_MARGIN = 140;
 }
 
 const MAX_ASPECT_RATIO = 1.3;
@@ -69,11 +69,22 @@ class GameObject {
             height + 1
         );
     }
+    resolveColission(object, side) {}
+    
 }
 
 class StaticObject extends GameObject {
     constructor(x, y, width, height, color) {
         super(x, y, width, height, color);
+    }
+
+    resolveColission(object, side) {
+        if (object instanceof MobileObject) {
+            if (side === "left") {object.speedX = 0; object.x = this.x - object.width;}
+            else if (side === "right") {object.speedX = 0; object.x = this.x + this.width;}
+            else if (side === "top") {object.speedY = 0; object.standingOn = this; object.y = this.y + this.height;}
+            else if (side === "bottom") {object.speedY = 0; object.y = this.y - object.height;}
+        }
     }
 }
 
@@ -157,7 +168,8 @@ class MobileObject extends GameObject {
             // console.log(this.speedY)
             // console.log(this.standingOn)
             this.resolveColission(object, side);
-            object.resolveColission(this, side);
+            const oppositeSide = {"top": "bottom", "bottom": "top", "left": "right", "right": "left"}[side];
+            object.resolveColission(this, oppositeSide);
             // console.log(this.speedY)
             // console.log(this.standingOn)
 
@@ -192,63 +204,12 @@ class Mario extends MobileObject {
         if (this.y < 0) {this.active = false;}
         super.step(dt, input);
     }
-    
-    resolveColission(object, side) {
-        if (object instanceof StaticObject) {
-            if (side === "left") {this.speedX = 0; this.x = object.x + object.width;}
-            else if (side === "right") {this.speedX = 0; this.x = object.x - this.width;}
-            else if (side === "top") {this.speedY = 0; this.y = object.y - this.height;}
-            else if (side === "bottom") {this.speedY = 0; this.standingOn = object; this.y = object.y + object.height;}
-        }
-        else if ( object instanceof Turtle ) {
-            switch (side) {
-                case "bottom":
-                    if (object.mode === 'walk') {                       // Turtle is walking
-                        console.log("TO SHELL")
-                        object.toShell();
-                    } else if (object.input.left || object.input.right) { // Turtle is moving shell
-                        object.speedX = 0;
-                        object.input = {left: false, right: false, up: false, down: false};
-                    } else {                                            // Shell is stationary
-                        this.x > object.x ? object.input.left = true : object.input.right = true;
-                    }
-                    this.standingOn = object;
-                    this.jump();
-                    break;
-                case "top":
-                    this.die(); break;
-                case "left":
-                    if (object.mode === 'walk') { this.die(); }
-                    else if (object.input.right){ 
-                        this.die();
-                    } else { object.input.left = true;}
-                    break;
-                case "right":
-                    if (object.mode === 'walk') { this.die(); }
-                    else if (object.input.left){
-                        this.die();
-                    } else { object.input.right = true;}
-                    break;
-            }
-            console.log(object.x, object.y, object.speedX, object.speedY, object.input)
-        }
-    }
 }
 
 class Grass extends StaticObject {
     constructor(x, y, width, height) {
         super(x, y, width, height, "green");
-    }
-    
-    resolveColission(object, side) {
-        if (object instanceof MobileObject) {
-            if (side === "left") {object.speedX = 0; object.x = this.x - object.width;}
-            else if (side === "right") {object.speedX = 0; object.x = this.x + this.width;}
-            else if (side === "top") {object.speedY = 0; object.standingOn = this; object.y = this.y + this.height;}
-            else if (side === "bottom") {object.speedY = 0; object.y = this.y - object.height;}
-        }
-    }
-        
+    }   
 }
 
 class UnbreakableBlock extends StaticObject {
@@ -258,13 +219,36 @@ class UnbreakableBlock extends StaticObject {
 }
 
 
+class AutomatedObject extends MobileObject {
+
+    constructor(x, y, width, height, color, walkAccel, jumpSpeed, input) {
+        super(x, y, 10, 20, 'blue', TURTLE_ACCEL, TURTLE_JUMP_SPEED);
+        this.input = input;
+    }
+
+    crashBounce(StaticObject) {
+        if (this.speedX > 0) {
+            const depth = this.x + this.width - StaticObject.x;
+            this.x -= depth * 2;
+        } else {
+            const depth = StaticObject.x + StaticObject.width - this.x;
+            this.x += depth * 2;
+        }
+        this.speedX *= -1;
+        this.input.left = !this.input.left;
+        this.input.right = !this.input.right;
+    }
+
+}
+
+
+
 const TURTLE_ACCEL = 300;
 const TURTLE_JUMP_SPEED = 200;
 const TURTLE_SHELL_ACCEL = 1000;
-class Turtle extends MobileObject {
+class Turtle extends AutomatedObject {
     constructor(x, y, input) {
-        super(x, y, 10, 20, 'blue', TURTLE_ACCEL, TURTLE_JUMP_SPEED);
-        this.input = input;
+        super(x, y, 10, 20, 'blue', TURTLE_ACCEL, TURTLE_JUMP_SPEED, input);
         this.mode = 'walk';
     }
 
@@ -272,8 +256,8 @@ class Turtle extends MobileObject {
         this.mode = 'shell';
         this.speedX = 0;
         this.speedY = 0;
-        this.accelX = TURTLE_SHELL_ACCEL;
-        this.height = 5;
+        this.walkAccel = TURTLE_SHELL_ACCEL;
+        this.height = 10;
         this.input = {left: false, right: false, up: false, down: false};
     }
 
@@ -285,77 +269,69 @@ class Turtle extends MobileObject {
         object; side;
     }
 
-    // collideStatic(object) {
-    //     const side = this.getColisionSide(object);
-    //     if (side) {
-    //         if (side === "left") {this.x = object.x + object.width; this.input.left = false; this.input.right = true; this.speedX = -this.speedX;}
-    //         else if (side === "right") {this.x = object.x - this.width; this.input.left = true; this.input.right = false; this.speedX = -this.speedX;}
-    //         else if (side === "top") {this.y = object.y - this.height; this.speedY = 0;}
-    //         else if (side === "bottom") {this.y = object.y + object.height; this.speedY = 0; this.standingOn = object;}
-    //     }
-    // }
-    // collidedBy(object, side) {
-    //     if (this.mode === 'walk') {
-    //         switch (side) {
-    //             case "left":
-    //                 object.die(); break;
-    //             case "right":
-    //                 object.die(); break;
-    //             case "top":
-    //                 object.die(); break;
-    //             case "bottom":
-    //                 this.stepOn(object);
-    //                 object.standingOn = this; object.jump();
-    //         }
-    //     } else if (this.mode === 'shell') {
-    //         switch (side) {
-    //             case "left":
-    //                 if (this.input.right) {object.die();} 
-    //                 else {this.input.left = true; this.speedX = object.speedX;} break;
-    //             case "right":
-    //                 if (this.input.left) {object.die();}
-    //                 else {this.input.right = true; this.speedX = object.speedX;} break;
-    //             case "top":
-    //                 object.die(); break;
-    //             case "bottom":
-    //                 this.stepOn(object);
-    //                 object.standingOn = this; object.jump();
-    //                 break;
-    //         }
-    //     }
-    // }
+    resolveColission(object, side) {
+        super.resolveColission(object, side);
+        // console.log(side)
+        if ( object instanceof Mario ) {
+            switch (side) {
+                case "top":
+                    if (this.mode === 'walk') {                       // Turtle is walking
+                        this.toShell();
+                    } else if (this.input.left || this.input.right) { // Turtle is moving shell
+                        this.speedX = 0;
+                        this.input = {left: false, right: false, up: false, down: false};
+                    } else {                                            // Shell is stationary
+                        object.x > this.x ? this.input.left = true : this.input.right = true;
+                    }
+                    object.standingOn = this;
+                    object.jump();
+                    break;
+                case "bottom":
+                    object.die(); break;
+                case "left":
+                    if (this.mode === 'walk') { 
+                        object.die(); 
+                    }
+                    else if (this.input.right){
+                        object.die();
+                    } else { 
+                        this.input.right = true;
+                        this.speedX = object.speedX;
+                        this.x = object.x + object.width;
+                    }
+                    break;
+                case "right":
+                    if (this.mode === 'walk') { 
+                        object.die(); 
+                    }
+                    else if (this.input.left){ 
+                        object.die();
+                    } else { 
+                        this.input.left = true;
+                        this.speedX = object.speedX;
+                        this.x = object.x - this.width;
+                    }
+                    break;
+            }
+        }
+        if ( object instanceof StaticObject) {
+            // Calculate how deep it is in the object
+            if (side === "left" || side === "right") {
+                this.crashBounce(object);
+            }
+        }
+    }
     checkFloor() {
         if (this.standingOn) {
             if (this.x < this.standingOn.x || this.x > this.standingOn.x + this.standingOn.width - this.width) {
                 if (this.mode === 'shell'){
                     this.standingOn = null;
                 } else if (this.mode === 'walk') {
-                    // Turn around
-                    if (this.input.left) {
-                        this.x = this.standingOn.x;
-                    } else if (this.input.right) {
-                        this.x = this.standingOn.x + this.standingOn.width - this.width;
-                    }
-                    this.input.right = !this.input.right;
+                    this.speedX *= -1;
                     this.input.left = !this.input.left;
-                    this.speedX = -this.speedX;
+                    this.input.right = !this.input.right;
                 }
             }
-        }
-    }
-    stepOn(object) {
-        if (this.mode === 'walk') {
-            this.mode = 'shell';
-            this.input.left = false; this.input.right = false; this.input.up = false;
-            this.height = 10;
-            this.speedX = 0; this.speedY = 0;
-            this.walkAccel = TURTLE_SHELL_ACCEL;
-        } else if (this.input.left || this.input.right) { // Shell is moving
-            this.speedX = 0;
-            this.input.left = false; this.input.right = false;
-        } else { // Shell is stationary
-            // compare x position of shell and object
-            this.x < object.x ? this.input.left = true : this.input.right = true;
         }
     }
 }
@@ -393,17 +369,6 @@ class Game {
 
         const objects = [this.mainObject, ...this.activeMobileObjects, ...this.stationaryObjects];
         [this.mainObject, ...this.activeMobileObjects].forEach((object1) => { objects.forEach((object2) => {object1.collide(object2)})});
-
-
-        // Main Object Colision detection
-        // this.stationaryObjects.forEach((object) => {this.mainObject.collideStatic(object)});
-        // this.activeMobileObjects.forEach((object) => {this.mainObject.collideMobile(object)});
-
-        // // Mobile Object Colision detection
-        // this.activeMobileObjects.forEach((object) => {
-        //     this.stationaryObjects.forEach((object2) => {object.collideStatic(object2)});
-        // });
-
 
         return this.mainObject.active;
     }
@@ -460,7 +425,7 @@ class EventLoop {
             const dt = (timestamp - stepStartTimestamp) / 1000;
             fps.innerHTML = Math.round(1 / dt /10)* 10 ;
             stepStartTimestamp = timestamp;
-            let do_not_exit = gameMap.step(dt, input);
+            const do_not_exit = gameMap.step(dt, input);
             gameMap.draw();
 
             if (do_not_exit) {
