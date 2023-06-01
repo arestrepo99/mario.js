@@ -1,24 +1,31 @@
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-const fps = document.getElementById("fps");
+import { HardObject } from "./GameObjects/StaticObjects.js";
+import MobileObject from "./GameObjects/MobileObject.js";
 // SCREEN INITIALIZATION AND RESIZING
 
+import SCREEN from "./screen.js";
 
 const CAMERA_EDGE_RIGHT = 0.4;
 const CAMERA_EDGE_LEFT = 0.2;
-export class Game {
+export class Map {
     constructor(mainObject, mobileObjects, stationaryObjects) {
         this.mainObject = mainObject;
-        this.mobileObjects = mobileObjects;
-        this.stationaryObjects = stationaryObjects;
-        this.camera = {x: 0, y: 0, zoom: 250}; // Zoom defines the number of units in width that the camera can see
+        this.objects = [...mobileObjects, ...stationaryObjects];
+        this.objects.forEach((object) => {object.getChildObjects().forEach((child) => this.objects.push(child))});
+        this.camera = {x: 0, y: 0, zoom: 26, screen: SCREEN}; // Zoom defines the number of units in width that the camera can see
     }
     draw() {
         this.trackMainObject()
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        this.mainObject.draw(this.camera);
-        this.stationaryObjects.forEach((object) => {object.draw(this.camera)});
-        this.activeMobileObjects.forEach((object) => {object.draw(this.camera)});
+        const activeObjects = this.objects.filter((object) => object.active);
+        activeObjects.forEach((object) => {object.draw(ctx, this.camera)});
+        this.mainObject.draw(ctx, this.camera);
+        // Draw text 
+        ctx.fillStyle = "white";
+        ctx.font = "30px Arial";
+        ctx.fillText(`x: ${this.mainObject.x.toFixed(2)}, y: ${this.mainObject.y.toFixed(2)}`, 10, 50);
+        ctx.fillText(`FPS: ${this.fps}`, 10, 100);
     }
     trackMainObject() {
         // Camera movement
@@ -29,24 +36,20 @@ export class Game {
             this.camera.x = this.mainObject.x - (1 - CAMERA_EDGE_RIGHT) * (this.camera.zoom);
         }
     }
-    step(dt, input) {
-        this.mainObject.step(dt, input);
-        this.activeMobileObjects = this.mobileObjects.filter((object) => object.active);
-        this.activeMobileObjects.forEach((object) => {object.step(dt)});
-
-        const objects = [this.mainObject, ...this.activeMobileObjects, ...this.stationaryObjects];
-        [this.mainObject, ...this.activeMobileObjects].forEach((object1) => { objects.forEach((object2) => {object1.collide(object2)})});
-
-
-        // Main Object Colision detection
-        // this.stationaryObjects.forEach((object) => {this.mainObject.collideStatic(object)});
-        // this.activeMobileObjects.forEach((object) => {this.mainObject.collideMobile(object)});
-
-        // // Mobile Object Colision detection
-        // this.activeMobileObjects.forEach((object) => {
-        //     this.stationaryObjects.forEach((object2) => {object.collideStatic(object2)});
-        // });
-
+    step(dt, input, time) {
+        this.fps = Math.round(1 / dt /10)* 10 ;
+        this.mainObject.step(dt, input, time);
+        // Step for active Objects
+        const activeObjects = this.objects.filter((object) => object.active);
+        activeObjects.forEach((object) => {object.step(dt, time)});
+        // Collision detection
+        const mobileObjects = [this.mainObject, ...activeObjects.filter((object) => object instanceof MobileObject)]
+        const collidableObjects = [
+            ...mobileObjects,
+            ...activeObjects.filter((object) => object instanceof HardObject)
+        ];
+        // const collidableObjects = [this.mainObject, ...this.activeMobileObjects, ...this.stationaryObjects.filter((object) => object instanceof HardObject)];
+        mobileObjects.forEach((object1) => { collidableObjects.forEach((object2) => {object1.collide(object2)})});
         return this.mainObject.active;
     }
 }
@@ -60,7 +63,7 @@ const keysToActions = {
     " ": "up",
 }
 
-export class EventLoop {
+export class Game {
     constructor(gameMap) {
         this.gameMap = gameMap;
         this.input = {
@@ -76,6 +79,7 @@ export class EventLoop {
         window.addEventListener("keydown", (event) => {
             if (Object.keys(keysToActions).includes(event.key)) {
                 this.input[keysToActions[event.key]] = true;
+                event.preventDefault();
             }
         });
         window.addEventListener("keyup", (event) => {
@@ -100,11 +104,10 @@ export class EventLoop {
         const input = this.input;
         function loop(timestamp) {
             const dt = (timestamp - stepStartTimestamp) / 1000;
-            fps.innerHTML = Math.round(1 / dt /10)* 10 ;
+            const elapsed = (timestamp - startTimestamp) / 1000;
             stepStartTimestamp = timestamp;
-            const do_not_exit = gameMap.step(dt, input);
+            const do_not_exit = gameMap.step(dt, input, elapsed);
             gameMap.draw();
-
             if (do_not_exit) {
                 window.requestAnimationFrame(loop);
             } else {

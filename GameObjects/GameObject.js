@@ -1,30 +1,59 @@
-// const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-// SCREEN INITIALIZATION AND RESIZING
-import SCREEN from "../screen.js";
-
 export default class GameObject {
-    constructor(x, y, width, height, color) {
+    constructor(x, y, width, height) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.color = color;
         this.speedX = 0;
         this.speedY = 0;
+        this.intervals = []
+        this.time = 0;
+        this.active = true;
     }
-    draw(camera) {
-        ctx.fillStyle = this.color;
-        const x = (this.x - camera.x) * SCREEN.width / (camera.zoom)
-        const y = (this.y - camera.y) * SCREEN.height / (camera.zoom / SCREEN.aspectRatio)
-        const width = this.width * SCREEN.width / (camera.zoom)
-        const height = this.height * SCREEN.height / (camera.zoom / SCREEN.aspectRatio)
 
+    runAfterInterval(waitTime, func, repeat = false) {
+        this.intervals.push({ waitTime, func, startTime: this.time, repeat });
+    }
+
+    getChildObjects() {
+        return [];
+    }
+
+    step(dt, time){
+        this.time = time;
+        // Run intervals
+        this.intervals.forEach((interval) => {
+            const { waitTime, func, startTime } = interval;
+            if (time - startTime > waitTime) {
+                func();
+                if (!interval.repeat) {
+                    this.intervals.splice(this.intervals.indexOf(interval), 1);
+                } else {
+                    interval.startTime = time;
+                }
+
+            }
+        });
+    }
+
+    getPositionInCtx(camera){
+        const {width, height, aspectRatio} = camera.screen;
+        return {
+            x: (this.x - camera.x) * width / (camera.zoom),
+            y: height - ((this.y - camera.y) * height / (camera.zoom / aspectRatio)) - (this.height * height / (camera.zoom / aspectRatio)),
+            width: this.width * width / (camera.zoom),
+            height: this.height * height / (camera.zoom / aspectRatio)
+        }
+    }
+
+    draw(ctx, camera) {
+        ctx.fillStyle = "red";
+        const {x, y, width, height} = this.getPositionInCtx(camera);
         ctx.fillRect(
             x,
-            SCREEN.height - y - height,
-            width + 1,
-            height + 1
+            y,
+            width,
+            height
         );
     }
     resolveColission(object, side) {}

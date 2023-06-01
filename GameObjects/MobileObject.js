@@ -1,24 +1,35 @@
 import GameObject from "./GameObject.js";
-const GRAVITY_ACCELERATION = -800;
-
+import { HardObject } from "./StaticObjects.js";
+const GRAVITY_ACCELERATION = -9.8 * 10; // ten times earth gravity
+const oppositeSideMap = {"top": "bottom", "bottom": "top", "left": "right", "right": "left"}
 export default class MobileObject extends GameObject {
-    constructor(x, y, width, height, color, walkAccel, jumpSpeed) {
-        super(x, y, width, height, color);
+    constructor(x, y, width, height, walkAccel, jumpSpeed) {
+        super(x, y, width, height);
         this.walkAccel = walkAccel;
         this.jumpSpeed = jumpSpeed;
-        this.standingOn = null;
+        this.standingOn = [];
+        this.speedX = 0;
+        this.speedY = 0;
         this.accelX = 0;
         this.dead = false;
         this.active = true;
     }
-    step(dt, input) {
+
+    freeFall() {
+        return !this.standingOn.length;
+    }
+
+    step(dt, input, time) {
+        // Call super class step
+        super.step(dt, time);
+
         // Bounds
         if (this.y < -this.height) {this.active = false;}
         
         // Gravity
-        this.checkFloor();
+        // this.checkFloor();
         this.speedX += this.accelX * dt;
-        if (!this.standingOn) {
+        if (this.freeFall()) {
             this.speedY += GRAVITY_ACCELERATION * dt;
         }
         // Friction
@@ -36,12 +47,22 @@ export default class MobileObject extends GameObject {
         this.x += this.speedX * dt;
         this.y += this.speedY * dt;
 
+        // Reset standingOn (will be reset by collision detection)
+        this.standingOn = [];
+
+        if (this.y < 0) {this.active = false;}
+        // Set looking direction for drawing
+        if (input['left']) {
+            this.lookingDirection = 'left';
+        } else if (input['right']) {
+            this.lookingDirection = 'right';
+        }
        
     }
     jump() {
-        if (this.standingOn) {
+        if (!this.freeFall()) {
             this.speedY = this.jumpSpeed;
-            this.standingOn = null;
+            this.standingOn = [];
         }
     }
     collisionDetection(object) {
@@ -79,24 +100,19 @@ export default class MobileObject extends GameObject {
         if (this.dead || object.dead) {return;}
         if (this === object) {return;}
         const collision = this.collisionDetection(object);
+        this.getStanding(object);
         if (collision) {
             const {time, side} = collision;
+            const oppositeSide = oppositeSideMap[side];
 
             // Move objects to time of collision (time is negative)
             this.x += this.speedX * time;
             this.y += this.speedY * time;
             object.x += object.speedX * time;
             object.y += object.speedY * time;
-            // console.log(side)
-            
-            // console.log(this.speedY)
-            // console.log(this.standingOn)
+            // Resolve collision
             this.resolveColission(object, side);
-            const oppositeSide = {"top": "bottom", "bottom": "top", "left": "right", "right": "left"}[side];
             object.resolveColission(this, oppositeSide);
-            // console.log(this.speedY)
-            // console.log(this.standingOn)
-
             // Move objects to time of rest
             this.x += this.speedX * -time;
             this.y += this.speedY * -time;
@@ -104,18 +120,40 @@ export default class MobileObject extends GameObject {
             object.y += object.speedY * -time;
         }
     }
-    checkFloor() {
-        if (this.standingOn) {
-            if (this.x + this.width < this.standingOn.x || this.x > this.standingOn.x + this.standingOn.width) {
-                this.standingOn = null;
+
+    getStanding(object) {
+        if (object instanceof HardObject) {
+            // Check Horizontal range
+            if (object.x < this.x + this.width && object.x + object.width > this.x) {
+                // Check vertical range
+                if (this.y === object.y + object.height) {
+                    this.standingOn.push(object);
+                }
             }
         }
     }
+
+    resolveColission(object, side) {
+        if (object instanceof HardObject) {
+            if (side === "right") {this.speedX = 0; this.x = object.x - this.width;}
+            else if (side === "left") {this.speedX = 0; this.x = object.x + object.width;}
+            else if (side === "bottom") {this.speedY = 0; this.standingOn.push(object); this.y = object.y + object.height;}
+            else if (side === "top") {this.speedY = 0; this.y = object.y - this.height;}
+        }
+    }
+
+    // checkFloor() {
+    //     // Make sure all objects are in the same horizontal range
+    //     this.standingOn.filter(object =>
+    //         object.x < this.x + this.width &&
+    //         object.x + object.width > this.x
+    //     );          
+    // }
+
     die() {
         this.dead = true;
-        this.accelX = -200;
-        this.speedX = -20;
-        this.standingOn = true;
+        // this.speedX = -3;
+        this.standingOn = [this];
         this.jump();
     }
 }
