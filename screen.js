@@ -14,6 +14,8 @@ if (!MOBILE) {
     // remove buttons
     document.getElementById("buttons").remove();
     VERTICAL_MARGIN = 140;
+} else {
+    document.getElementById("controls").remove();
 }
 
 const MAX_ASPECT_RATIO = 1.3;

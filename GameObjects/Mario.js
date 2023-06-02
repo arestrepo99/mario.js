@@ -66,7 +66,7 @@ export default class Mario extends MobileObject {
     shootFireball(){
         if (!this.lastFire) {
             this.lastFire = this.clock.time;
-            this.wait(1, () => {this.lastFire = null;});
+            this.wait(0.5, () => {this.lastFire = null;});
             let direction
             if (this.input.right && !this.input.left) {
                 direction = 'right';
