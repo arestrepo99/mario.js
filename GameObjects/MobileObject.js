@@ -153,7 +153,8 @@ export default class MobileObject extends GameObject {
     // }
 
     die() {
-        this.dead = true;
+        // this.active = false;
+        this.dead = true
         this.standingOn = [this];
         this.jump();
     }

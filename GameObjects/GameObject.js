@@ -54,6 +54,8 @@ export default class GameObject {
         }
     }
 
+    getRenderSection(){}
+
     draw(ctx, camera) {
         
         const renderSection = this.getRenderSection();

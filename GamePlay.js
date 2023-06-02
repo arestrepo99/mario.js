@@ -82,9 +82,12 @@ export class Map {
     evaluateActions(actions) {
         actions.forEach((action) => {
             if (action) {
+                console.log(action);
                 switch (action.type) {
                     case "addObject":
+                        action.object.activate();
                         this.objects.push(action.object);
+                        console.log("Added object");
                         break;
                 }
             }

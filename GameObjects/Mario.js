@@ -31,6 +31,7 @@ const renderSectionMap = {
     }
 }
 
+import { Fireball } from './AutomatedObjects/Objects.js';
 
 export default class Mario extends MobileObject {
     constructor(x, y) {
@@ -38,6 +39,8 @@ export default class Mario extends MobileObject {
         this.mode = 'small';
         this.printedTime = 0;
         this.tilemap = tilemap;
+        // this.fire();
+        this.lookingDirection = 'right';
     }
 
     step(dt, input) {
@@ -56,14 +59,27 @@ export default class Mario extends MobileObject {
 
     action(){
         if (this.mode == 'fire'){
-            if (!this.lastFire) {
-                this.lastFire = this.clock.time;
-                this.wait(1, () => {this.lastFire = null;});
-                console.log("Fire!");
-                // return {action: "addObject", object: new Fireball(this.x, this.y, this.lookingDirection)};
-            }
+            return this.shootFireball();
         }
     }
+
+    shootFireball(){
+        if (!this.lastFire) {
+            this.lastFire = this.clock.time;
+            this.wait(1, () => {this.lastFire = null;});
+            let direction
+            if (this.input.right && !this.input.left) {
+                direction = 'right';
+            } else if (this.input.left && !this.input.right) {
+                direction = 'left';
+            } else {
+                direction = this.lookingDirection;
+            }
+            console.log('Fireball', direction)
+            return {type: "addObject", object: new Fireball(this.x, this.y+1, direction == 'right' ? {right: true} : {left: true})};
+        }
+    }
+
 
     getRenderSection() {
         let section

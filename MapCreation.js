@@ -11,7 +11,6 @@ import End from './GameObjects/End.js';
 
 // MAP CREATION
 const MARIO = new Mario(6, 2);
-MARIO.big()
 const trickTurtle = new Turtle(null, null, {right: true})
 trickTurtle.fallAtEdge = true;
 
