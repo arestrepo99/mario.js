@@ -1,0 +1,24 @@
+#! bin/bash
+
+sudo apt -y update
+sudo apt -y install nano
+sudo apt -y install git
+git clone https://github.com/arestrepo99/mario.js.git
+sudo apt -y install nginx
+
+
+echo "server {" > /etc/nginx/sites-available/default
+echo "    listen 80 default_server;" >> /etc/nginx/sites-available/default
+echo "    listen [::]:80 default_server;" >> /etc/nginx/sites-available/default
+echo "    root /home/ubuntu/mario.js;" >> /etc/nginx/sites-available/default
+echo "    index index.html;" >> /etc/nginx/sites-available/default
+echo "    location / {" >> /etc/nginx/sites-available/default
+echo "        try_files $uri $uri/ /index.html;" >> /etc/nginx/sites-available/default
+echo "    }" >> /etc/nginx/sites-available/default
+echo "}" >> /etc/nginx/sites-available/default
+
+sudo nginx -s reload
+
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
