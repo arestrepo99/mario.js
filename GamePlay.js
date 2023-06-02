@@ -158,10 +158,10 @@ export class Game {
                 window.requestAnimationFrame(loop);
             } else {
                 // Draw large text saying Game OVER
-                ctx.fillStyle = "Red";
+                ctx.fillStyle = "Black";
                 console.log(gameMap.camera.screen.width)
-                ctx.font = `${gameMap.camera.screen.width/6}px Arial`;
-                ctx.fillText(`Game Over`, 100, gameMap.camera.screen.height / 2);
+                ctx.font = `${gameMap.camera.screen.width/16}px Arial`;
+                ctx.fillText(`Game Over`, gameMap.camera.screen.width/3, gameMap.camera.screen.height / 10);
                 window.requestAnimationFrame(() => {  });
             }
         }

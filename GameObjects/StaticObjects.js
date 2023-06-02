@@ -166,13 +166,43 @@ export class HardObject extends StaticObject {
 
 }
 
+export class ModularHardObject extends HardObject {
+    getChildObjects() {
+        if (this.singular()) {
+            return [];
+        } else {
+            const children = [];
+            const ChildClass = this.constructor;
+            for (let i = 0; i < this.width; i++) {
+                for (let j = 0; j < this.height; j++) {
+                    const child = new ChildClass(this.x + i, this.y + j, 1, 1);
+                    child.activate()
+                    children.push(child);
+                }
+            }
+            return children;
+        }
+    }
+
+    step(dt) {
+        if (!this.singular()) {
+            this.active = false;
+        }
+        super.step(dt);
+    }
+
+    singular(){
+        return this.width == 1 && this.height == 1;
+    }
+}
+
 export class Rock extends HardObject {
     getRenderSection(){
         return {x:16, y:16, w:16, h:16};
     }
 }
 
-export class Brick extends HardObject {
+export class Brick extends ModularHardObject {
     getRenderSection(){
         return {x:16, y:0, w:16, h:16};
     }

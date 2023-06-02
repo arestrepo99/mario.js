@@ -24,6 +24,11 @@ const SCREEN = {
     aspectRatio: window.innerWidth / window.innerHeight,
 }
 
+const left = document.getElementById("left");
+const right = document.getElementById("right");
+const up = document.getElementById("up");
+const action = document.getElementById("action");
+
 function resize() {
     SCREEN.width = window.innerWidth - HORIZONTAL_MARGIN;
     SCREEN.height = window.innerHeight - VERTICAL_MARGIN;
@@ -38,6 +43,40 @@ function resize() {
     }
     canvas.setAttribute("width", SCREEN.width);
     canvas.setAttribute("height", SCREEN.height);
+
+
+    if (MOBILE){
+        const v_left = 8;
+        const v_right = SCREEN.width + 8;
+        const v_top = SCREEN.height + 16;
+        const v_bottom = SCREEN.height * (1 + 1/3) + 16;
+
+        const v_middleHeight = SCREEN.height / (3);
+        const v_middleWidth = SCREEN.width / 2;
+
+        const padding = 4;
+
+        left.style.left = v_left + "px";
+        left.style.top = v_top + "px";
+        left.style.width = v_middleWidth/2 - padding + "px";
+        left.style.height = v_middleHeight + "px";
+
+        right.style.left = v_left + v_middleWidth/2 + padding + "px";
+        right.style.top = v_top + "px";
+        right.style.width = v_middleWidth/2 + - 2 * padding + "px";
+        right.style.height = v_middleHeight + "px";
+
+        up.style.left = v_left + v_middleWidth + padding + "px";
+        up.style.top = v_top + "px";
+        up.style.width = v_middleWidth + - padding + "px";
+        up.style.height = v_middleHeight/2 - padding + "px";
+
+        action.style.left = v_left + v_middleWidth + padding + "px";
+        action.style.top = v_top + SCREEN.height / (3*2) + padding + "px";
+        action.style.width = v_middleWidth - padding + "px";
+        action.style.height = v_middleHeight/2 - padding + "px";
+}
+
 }
 
 // Set canvas size
