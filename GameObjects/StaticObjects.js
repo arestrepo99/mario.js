@@ -208,7 +208,7 @@ export class Brick extends ModularHardObject {
     }
 
     hitBottom(player) {
-        if (player.mode == 'big') {
+        if (player.mode == 'big' || player.mode == 'fire') {
             this.active = false;
             // this.parent.add(new JumpingCoin(this.x, this.y));
         }
