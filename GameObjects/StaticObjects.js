@@ -179,7 +179,7 @@ export class Brick extends HardObject {
     }
 
     hitBottom(player) {
-        if (player.mode = 'big') {
+        if (player.mode == 'big') {
             this.active = false;
             // this.parent.add(new JumpingCoin(this.x, this.y));
         }
