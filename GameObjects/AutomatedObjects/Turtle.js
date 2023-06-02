@@ -1,6 +1,6 @@
 import AutomatedObject from './AutomatedObject.js';
 import Mario from '../Mario.js';
-
+import Goomba from './Goomba.js';
 
 const TURTLE_ACCEL = 20;
 const TURTLE_JUMP_SPEED = 30;
@@ -22,6 +22,19 @@ export default class Turtle extends AutomatedObject {
     constructor(x, y, input) {
         super(x, y, 1, 24/16, TURTLE_ACCEL, TURTLE_JUMP_SPEED, input);
         this.mode = 'walk';
+        this.tilemap = tilemap;
+    }
+
+    step(dt) {
+        super.step(dt);
+        this.dt = dt;
+    }
+
+    activate() {
+        super.activate();
+        // this.wait(0.5, () => {
+        //     console.log(this.speedX);
+        // }, true);
     }
 
     toShell() {
@@ -83,13 +96,14 @@ export default class Turtle extends AutomatedObject {
                     break;
             }
         }
-        if (object instanceof Turtle) {
+        if (object instanceof Turtle || object instanceof Goomba) {
             if (this.mode === 'shell') {
                 if (this.input.left || this.input.right) {
                     object.die();
                 }
             }
         }
+        // console.log(this.x, this.y)
     }
 
     die() {
@@ -97,9 +111,6 @@ export default class Turtle extends AutomatedObject {
         super.die();
     }
 
-    step(dt, time) {
-        super.step(dt, time);
-    }
 
     getRenderSection() {
         let section
@@ -108,7 +119,7 @@ export default class Turtle extends AutomatedObject {
         } else if (this.mode === 'shell') {
             section = renderSectionMap.shell;
         } else if (this.mode === 'walk') {
-            section = renderSectionMap.walk[Math.floor(this.time*10) % 2];
+            section = renderSectionMap.walk[Math.floor(this.clock.time*10) % 2];
         } else {
             section = renderSectionMap.idle;
         }
@@ -121,15 +132,4 @@ export default class Turtle extends AutomatedObject {
         // Skip fly for now
     }
 
-    draw(ctx, camera) {
-        const {x, y, width, height} = this.getPositionInCtx(camera)
-        const {x: sx, y: sy, w: sw, h: sh} = this.getRenderSection();
-        ctx.drawImage(
-            tilemap,
-            // Select section
-            sx, sy, sw, sh,
-            // Draw section of tilemap
-            x, y, width, height
-        )
-    }
 }

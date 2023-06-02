@@ -1,5 +1,7 @@
 import Mario from './GameObjects/Mario.js';
 import Turtle from './GameObjects/AutomatedObjects/Turtle.js';
+import Goomba from './GameObjects/AutomatedObjects/Goomba.js'; 
+import { Mushroom1Up , Mushroom } from './GameObjects/AutomatedObjects/Objects.js';
 import { Rock, Brick, QuestionBlock, Pipe, Cloud, Bush, BackgroundHill, HardBlock, JumpingCoin } from './GameObjects/StaticObjects.js';
 import { Map } from './GamePlay.js';
 
@@ -9,27 +11,19 @@ import { Map } from './GamePlay.js';
 // MAP CREATION
 const MARIO = new Mario(6, 2);
 
+const trickTurtle = new Turtle(null, null, {right: true})
+trickTurtle.fallAtEdge = true;
 
-// toatal.toShell();
-const MOBILEOBJECTS = [
-    // new Turtle(16, 2, {left: true}),
-    // new Turtle(14, 2, {left: true}),
-    // new Turtle(13, 2, {left: true}),
-    // new Turtle(10, 2, {left: true}),
-    // new Turtle(32, 2, {right: true}),
-    // new Turtle(24, 2, {left: true}),
-    // new Turtle(50, 2, {right: true}),
-];
 const STATICOBJECTS = [
     new BackgroundHill(2, 5, 3),
     new Rock(0, 0, 69, 2),
     new Cloud(8, 10, 2),
     new Bush(11, 2, 5),
-    new QuestionBlock(16, 5, 1, 1, new Turtle(null, null, {left: true})),
+    new QuestionBlock(16, 5, 1, 1, trickTurtle),
     new BackgroundHill(17, 4, 2),
     new Cloud(19, 11, 2),
     new Brick(20, 5, 1, 1),
-    new QuestionBlock(21, 5, 1, 1, new JumpingCoin()),
+    new QuestionBlock(21, 5, 1, 1, new Mushroom(null, null, {right: true})),
     new Brick(22, 5, 1, 1),
     new QuestionBlock(22, 9, 1, 1, new JumpingCoin()),
     new QuestionBlock(23, 5, 1, 1, new JumpingCoin()),
@@ -119,11 +113,21 @@ const STATICOBJECTS = [
     new HardBlock(187, 8, 2, 1),
     new HardBlock(188, 9, 1, 1),
     new HardBlock(189, 2, 1, 8),
+];
 
-
-
-
-
+// toatal.toShell();
+const MOBILEOBJECTS = [
+    new Turtle(16, 2, {right: true}),
+    new Goomba(20, 2, {right: true}),
+    new Goomba(32, 2, {right: true}),
+    new Goomba(42, 2, {right: true}),
+    new Goomba(44, 2, {right: true}),
+    // new Turtle(14, 2, {left: true}),
+    // new Turtle(13, 2, {left: true}),
+    // new Turtle(10, 2, {left: true}),
+    // new Turtle(32, 2, {right: true}),
+    // new Turtle(24, 2, {left: true}),
+    // new Turtle(50, 2, {right: true}),
 ];
 
 // STATICOBJECTS.forEach(object => {

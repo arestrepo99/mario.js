@@ -26,21 +26,18 @@ const renderSectionMap = {
 
 export default class Mario extends MobileObject {
     constructor(x, y) {
-        super(x, y, 16/16, 32/16, MARIOACCEL, MARIOJUMPSPEED);
-        this.mode = 'big';
+        super(x, y, 16/16, 16/16, MARIOACCEL, MARIOJUMPSPEED);
+        this.mode = 'small';
         this.printedTime = 0;
-
-        // this.runAfterInterval(1, () => {
-        //     console.log(this.x, this.y);
-        // }, true);
+        this.tilemap = tilemap;
     }
 
-    step(dt, input, time) {
+    step(dt, input) {
         this.input = input; // Save input for rendering
-        super.step(dt, input, time);
+        super.step(dt, input);
         // if (this.immune) {
         //     // Be inmune for 2 seconds
-        //     if (this.time - this.immune.start > 2) {
+        //     if (this.clock.time - this.immune.start > 2) {
         //         this.immune = null;
         //     }
         // }
@@ -53,19 +50,19 @@ export default class Mario extends MobileObject {
             section = renderSectionMap[this.mode]['dead'];
         } else if (this.freeFall()) {
             section = renderSectionMap[this.mode]['jump'];
-        } else if (this.speedX > 10) {
+        } else if (this.speedX > 1) {
             if (!this.input['right']) {
                 section = renderSectionMap[this.mode]['break'];
                 breaking = true;
             } else {
-                section = renderSectionMap[this.mode]['walk'][Math.floor(this.time * 10) % 3];
+                section = renderSectionMap[this.mode]['walk'][Math.floor(this.clock.time * 10) % 3];
             }
-        } else if (this.speedX < -10) {
+        } else if (this.speedX < -1) {
             if (!this.input['left']) {
                 section = renderSectionMap[this.mode]['break'];
                 breaking = true;
             } else {
-                section = renderSectionMap[this.mode]['walk'][Math.floor(this.time * 10) % 3];
+                section = renderSectionMap[this.mode]['walk'][Math.floor(this.clock.time * 10) % 3];
             }
         } else {
             section = renderSectionMap[this.mode]['idle'];
@@ -84,37 +81,35 @@ export default class Mario extends MobileObject {
 
 
     draw(ctx, camera) {
-
         if (this.immune) {
             // Blink every 0.1 seconds
-            if (Math.floor(this.time * 10) % 2 == 0) {
-                return;
-            }
+            if (Math.floor(this.clock.time * 10) % 2 == 0) {return;}
         }
-        const {x, y, width, height} = this.getPositionInCtx(camera)
-        const {x: sx, y: sy, w: sw, h: sh} = this.getRenderSection();
-        ctx.drawImage(
-            tilemap,
-            // Select section
-            sx, sy, sw, sh,
-            // Draw section of tilemap
-            x, y, width, height
-        )
+        super.draw(ctx, camera);
     }
 
+    big(){
+        this.mode = 'big';
+        this.width = 1;
+        this.height = 2;
+    }
+
+    small(){
+        this.mode = 'small';
+        this.width = 1;
+        this.height = 1;
+    }
     die() {
         if (this.immune) {
             return;
         }
         if (this.mode == 'big') {
-            this.mode = 'small';
-            this.width = 1;
-            this.height = 1;
+            this.small();
             this.immune = true;
-            this.runAfterInterval(2, () => {
+            this.wait(2, () => {
                 this.immune = false;
             });
-            // this.immune = {start: this.time};
+            // this.immune = {start: this.clock.time};
         } else {
             super.die();
         }

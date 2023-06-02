@@ -8,25 +8,62 @@ import SCREEN from "./screen.js";
 
 const CAMERA_EDGE_RIGHT = 0.4;
 const CAMERA_EDGE_LEFT = 0.2;
+
+class Clock {
+    start() {
+        this.startTime = window.performance.now()
+        this.time = 0
+        this.stepStartTime = 0
+        this.lastFpsUpdate = 0
+        this.fps = 0
+    }
+    update(timestamp) { 
+        const dt = (timestamp - this.stepStartTime) / 1000;
+        this.stepStartTime = timestamp;
+        this.time = (timestamp - this.startTime) / 1000;
+        // Update FPS 2 times per second
+        if (this.time - this.lastFpsUpdate > 0.5) {
+            this.fps = 1 / dt;
+            this.lastFpsUpdate = this.time;
+        }
+        return dt;
+    }
+
+}
+export const clock = new Clock();
+
 export class Map {
     constructor(mainObject, mobileObjects, stationaryObjects) {
         this.mainObject = mainObject;
-        this.objects = [...mobileObjects, ...stationaryObjects];
+        this.objects = [...stationaryObjects, ...mobileObjects,];
+        this.objects.forEach((object) => object.activate());
         this.objects.forEach((object) => {object.getChildObjects().forEach((child) => this.objects.push(child))});
-        this.camera = {x: 0, y: 0, zoom: 26, screen: SCREEN}; // Zoom defines the number of units in width that the camera can see
+        this.camera = {x: 0, y: 0, zoom: 25, screen: SCREEN}; // Zoom defines the number of units in width that the camera can see
     }
+
+    getActiveObjects() {
+        const activeObjects = this.objects.filter((object) => object.active);
+        activeObjects.forEach((object) => {object.draw(ctx, this.camera)});
+        // Only objects 5 units before and after camera are active
+        // 
+        return activeObjects //.filter((object) => object.x > this.camera.x - 5 && object.x < this.camera.x + this.camera.zoom + 5);
+    }
+
+
+
     draw() {
         this.trackMainObject()
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const activeObjects = this.objects.filter((object) => object.active);
-        activeObjects.forEach((object) => {object.draw(ctx, this.camera)});
+        this.getActiveObjects().forEach((object) => {object.draw(ctx, this.camera)});
         this.mainObject.draw(ctx, this.camera);
         // Draw text 
         ctx.fillStyle = "white";
         ctx.font = "30px Arial";
         ctx.fillText(`x: ${this.mainObject.x.toFixed(2)}, y: ${this.mainObject.y.toFixed(2)}`, 10, 50);
-        ctx.fillText(`FPS: ${this.fps}`, 10, 100);
+        ctx.fillText(`FPS: ${clock.fps.toFixed(0)}`, 10, 100);
+        ctx.fillText(`Time: ${clock.time.toFixed(0)}`, 10, 150);
     }
+
     trackMainObject() {
         // Camera movement
         if (this.mainObject.x < this.camera.x + (CAMERA_EDGE_LEFT * (this.camera.zoom))) {
@@ -36,12 +73,12 @@ export class Map {
             this.camera.x = this.mainObject.x - (1 - CAMERA_EDGE_RIGHT) * (this.camera.zoom);
         }
     }
-    step(dt, input, time) {
-        this.fps = Math.round(1 / dt /10)* 10 ;
-        this.mainObject.step(dt, input, time);
+    
+    step(dt, input) {
+        this.mainObject.step(dt, input);
         // Step for active Objects
-        const activeObjects = this.objects.filter((object) => object.active);
-        activeObjects.forEach((object) => {object.step(dt, time)});
+        const activeObjects = this.getActiveObjects();
+        activeObjects.forEach((object) => {object.step(dt)});
         // Collision detection
         const mobileObjects = [this.mainObject, ...activeObjects.filter((object) => object instanceof MobileObject)]
         const collidableObjects = [
@@ -62,6 +99,9 @@ const keysToActions = {
     "ArrowDown": "down",
     " ": "up",
 }
+
+
+
 
 export class Game {
     constructor(gameMap) {
@@ -97,18 +137,20 @@ export class Game {
     }
 
     start() {
-        let startTimestamp = window.performance.now();
-        let stepStartTimestamp = startTimestamp;
+        // let startTimestamp = ;
+        
         const gameMap = this.gameMap;
         this.startListeningForInput();
         const input = this.input;
+        clock.start();
         function loop(timestamp) {
-            const dt = (timestamp - stepStartTimestamp) / 1000;
-            const elapsed = (timestamp - startTimestamp) / 1000;
-            stepStartTimestamp = timestamp;
-            const do_not_exit = gameMap.step(dt, input, elapsed);
+            const dt = clock.update(timestamp);
+            // const dt = (timestamp - stepStartTimestamp) / 1000;
+            // const elapsed = (timestamp - startTimestamp) / 1000;
+            // stepStartTimestamp = timestamp;
+            const gameOver = !gameMap.step(dt, input);
             gameMap.draw();
-            if (do_not_exit) {
+            if (!gameOver) {
                 window.requestAnimationFrame(loop);
             } else {
                 console.log("Game Over");

@@ -6,7 +6,6 @@ const tilemap = new Image();
 tilemap.src = "tilemaps/map1.png";
 
 export class StaticObject extends GameObject {
-
     draw(ctx, camera) {
         let {x, y, width, height} = this.getPositionInCtx(camera);
         const {x: sx, y: sy, w: sw, h: sh} = this.getRenderSection();
@@ -124,7 +123,19 @@ export class BackgroundHill extends StaticObject {
 
 export class JumpingCoin extends StaticObject {
     constructor(x, y) {
-        super(x, y, 1, 1);
+        super(x, y, 1, 1) ;
+    }
+
+    step(dt) {
+        super.step(dt);
+        this.y += 2*dt;
+    }
+
+    activate() {   
+        super.activate();
+        this.wait(0.1, () => {
+            this.active = false;
+        });
     }
 
     getRenderSection(){
@@ -166,6 +177,14 @@ export class Brick extends HardObject {
     getRenderSection(){
         return {x:16, y:0, w:16, h:16};
     }
+
+    hitBottom(player) {
+        if (player.mode = 'big') {
+            this.active = false;
+            // this.parent.add(new JumpingCoin(this.x, this.y));
+        }
+    }
+
 }
 
 export class QuestionBlock extends HardObject {
@@ -186,23 +205,6 @@ export class QuestionBlock extends HardObject {
             return {x:4*16, y:3*16, w:16, h:16};
         }
     }
-
-    step(dt, time) {
-        super.step(dt, time);
-        if (this.opened) {
-            this.content.step(dt, time);
-        }
-        // Opening animation
-        if (this.opening) {
-            const timeSinceOpen = time - this.opening.openStart;
-            this.opening.offset = this.opening.direction * Math.sin(timeSinceOpen * 2 * Math.PI / 0.2) * 0.2;
-            this.y = this.opening.originalY + this.opening.offset;
-            if (this.opening.offset < 0) { 
-                this.y = this.opening.originalY;
-                this.opening = false; 
-            }
-        }
-    }
     
     open(direction){
         if (this.opened) { return; }
@@ -213,8 +215,8 @@ export class QuestionBlock extends HardObject {
         } else {
             this.content.y = this.y - this.height - this.content.height + 1;
         }
-        this.content.active = true;
-        this.opening = {originalY: this.y, offset: 0, openStart: this.time, direction};
+        this.content.activate();
+        this.opening = {openStart: this.clock.time, direction};
     } 
 
     hitBottom(player) {
@@ -225,6 +227,22 @@ export class QuestionBlock extends HardObject {
         if (player.mode=='big' && player.input.down) {
             this.open(-1);
         }
+    }
+
+    getPositionInCtx(camera) {
+        let {x, y, width, height} = super.getPositionInCtx(camera);
+        const unitSize = camera.screen.width / (camera.zoom);
+        // Opening animation
+        if (this.opening) {
+            const timeSinceOpen = this.clock.time - this.opening.openStart;
+            const offset = this.opening.direction * Math.sin(timeSinceOpen * 2 * Math.PI / 0.2) * 0.2  * unitSize;
+            if (offset < 0) { 
+                this.opening = false; 
+            } else {
+                y = y - offset;
+            }
+        }
+        return {x, y, width, height};
     }
 
 }

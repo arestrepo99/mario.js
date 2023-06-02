@@ -19,9 +19,9 @@ export default class MobileObject extends GameObject {
         return !this.standingOn.length;
     }
 
-    step(dt, input, time) {
+    step(dt, input) {
         // Call super class step
-        super.step(dt, time);
+        super.step(dt);
 
         // Bounds
         if (this.y < -this.height) {this.active = false;}
@@ -65,6 +65,8 @@ export default class MobileObject extends GameObject {
             this.standingOn = [];
         }
     }
+
+
     collisionDetection(object) {
         // Check if in same horizontal range
         // right (ture if object's left side is to the right of this object's right side)
@@ -90,7 +92,8 @@ export default class MobileObject extends GameObject {
                 if (rightTime<0 && rightTime>time) {time = rightTime; side = "right";}
                 const leftTime = (object.x + object.width - this.x) / (this.speedX - object.speedX);
                 if (leftTime<0 && leftTime>time) {time = leftTime; side = "left";}
-                return {time, side};                
+                console.log(object, this, side)           
+                return {time, side};     
             }
         }
         return false;
@@ -152,7 +155,6 @@ export default class MobileObject extends GameObject {
 
     die() {
         this.dead = true;
-        // this.speedX = -3;
         this.standingOn = [this];
         this.jump();
     }

@@ -1,3 +1,5 @@
+import { clock } from "../GamePlay.js";
+
 export default class GameObject {
     constructor(x, y, width, height) {
         this.x = x;
@@ -7,33 +9,39 @@ export default class GameObject {
         this.speedX = 0;
         this.speedY = 0;
         this.intervals = []
-        this.time = 0;
-        this.active = true;
+        this.clock = clock;
+        this.active = false;
     }
 
-    runAfterInterval(waitTime, func, repeat = false) {
-        this.intervals.push({ waitTime, func, startTime: this.time, repeat });
+    wait(waitTime, func, repeat = false) {
+        this.intervals.push({ waitTime, func, startTime: this.clock.time, repeat });
     }
 
     getChildObjects() {
         return [];
     }
 
-    step(dt, time){
-        this.time = time;
-        // Run intervals
+    activate() {
+        this.active = true;
+    }
+
+    runIntervals() {
         this.intervals.forEach((interval) => {
             const { waitTime, func, startTime } = interval;
-            if (time - startTime > waitTime) {
+            if (this.clock.time - startTime > waitTime) {
                 func();
                 if (!interval.repeat) {
                     this.intervals.splice(this.intervals.indexOf(interval), 1);
                 } else {
-                    interval.startTime = time;
+                    interval.startTime = this.clock.time;
                 }
 
             }
         });
+    }
+
+    step(dt){
+        this.runIntervals();
     }
 
     getPositionInCtx(camera){
@@ -47,6 +55,23 @@ export default class GameObject {
     }
 
     draw(ctx, camera) {
+        
+        if (!this.tilemap) {
+            return this.drawFill(ctx, camera);
+        }
+        
+        const {x, y, width, height} = this.getPositionInCtx(camera)
+        const {x: sx, y: sy, w: sw, h: sh} = this.getRenderSection();
+        ctx.drawImage(
+            this.tilemap,
+            // Select section
+            sx, sy, sw, sh,
+            // Draw section of tilemap
+            x, y, width, height
+        )
+    }
+
+    drawFill(ctx, camera) {
         ctx.fillStyle = "red";
         const {x, y, width, height} = this.getPositionInCtx(camera);
         ctx.fillRect(

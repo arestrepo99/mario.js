@@ -1,5 +1,5 @@
 import MobileObject from '../MobileObject.js';
-import { StaticObject } from '../StaticObjects.js';
+import { HardObject } from '../StaticObjects.js';
 export default class AutomatedObject extends MobileObject {
 
     constructor(x, y, width, height, walkAccel, jumpSpeed, input) {
@@ -8,25 +8,21 @@ export default class AutomatedObject extends MobileObject {
         this.fallAtEdge = false;
     }
 
-    step(dt, time) {
+    step(dt) {
         if (!this.fallAtEdge) {
             this.checkEdge();
         }
-        super.step(dt, this.input, time);
+        super.step(dt, this.input);
     }
 
     resolveColission(object, side) {
-        if (object instanceof StaticObject) {
+        if (object instanceof HardObject) {
             if (side === "left" || side === "right") {
                 this.turnAround();
-                // this.x = object.x + object.width;
-            // } else if (side === "right") {
-                // this.turnAround();
-                // this.x = object.x - this.width;
-            } else {
-                super.resolveColission(object, side);
-            }
+                return;
+            } 
         }
+        super.resolveColission(object, side);
     }
 
     turnAround() {
