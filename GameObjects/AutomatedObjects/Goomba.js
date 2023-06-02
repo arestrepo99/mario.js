@@ -2,7 +2,7 @@ import AutomatedObject from './AutomatedObject.js';
 import Mario from '../Mario.js';
 
 const tilemap = new Image();
-tilemap.src = "tilemaps/Goomba.png";
+tilemap.src = "tilemaps/goomba.png";
 
 const GOOMBA_ACCEL = 20;
 const GOOMBA_JUMP_SPEED = 30;
