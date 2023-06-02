@@ -29,10 +29,15 @@ sudo apt -y install nginx
 sudo nano /etc/nginx/sites-available/default
 ```
 
+# DELETE THE FILE FOR EASIER WRITING
+```
+echo "" > /etc/nginx/sites-available/default
+```
+
 Inside the file, remove the existing content and replace it with the following configuration:
 
 ```
-echo "server {" > /etc/nginx/sites-available/default
+
 
 server {
     listen 80 default_server;
@@ -74,13 +79,10 @@ sudo systemctl enable nginx
 
 ```
 
-// **Adjust Firewall:** 
+6. **Enable Auto-Start:** 
 
-// Add port 80 rule (AlREADY DONE)
-click vcn-1 in instance info.
-click Security Lists in Repources sidebar.
-
-// Modify iptables
+# Modify iptables
+```
 iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80 -j ACCEPT
-
+```
 
