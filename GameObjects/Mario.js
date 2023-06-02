@@ -1,4 +1,5 @@
 import MobileObject from './MobileObject.js';
+import { Game } from '../GamePlay.js';
 
 const tilemap = new Image();
 tilemap.src = "tilemaps/mario.png";
@@ -21,6 +22,13 @@ const renderSectionMap = {
         'jump': {'x':80, 'y':16, 'w':16, 'h':32},
         'dead': {'x':96, 'y':16, 'w':16, 'h':32},
     },
+    'fire': {
+        'idle': {'x':0, 'y':48, 'w':16, 'h':32},
+        'walk': [{'x':16, 'y':48, 'w':16, 'h':32}, {'x':32, 'y':48, 'w':16, 'h':32}, {'x':48, 'y':48, 'w':16, 'h':32}],
+        'break': {'x':64, 'y':48, 'w':16, 'h':32},
+        'jump': {'x':80, 'y':48, 'w':16, 'h':32},
+        'dead': {'x':96, 'y':48, 'w':16, 'h':32},
+    }
 }
 
 
@@ -41,6 +49,20 @@ export default class Mario extends MobileObject {
         //         this.immune = null;
         //     }
         // }
+        if (input.action){
+            return this.action();
+        }
+    }
+
+    action(){
+        if (this.mode == 'fire'){
+            if (!this.lastFire) {
+                this.lastFire = this.clock.time;
+                this.wait(1, () => {this.lastFire = null;});
+                console.log("Fire!");
+                // return {action: "addObject", object: new Fireball(this.x, this.y, this.lookingDirection)};
+            }
+        }
     }
 
     getRenderSection() {
@@ -99,17 +121,30 @@ export default class Mario extends MobileObject {
         this.width = 1;
         this.height = 1;
     }
+
+    fire(){
+        this.mode = 'fire';
+        this.width = 1;
+        this.height = 2;
+    }
+
     die() {
         if (this.immune) {
             return;
         }
-        if (this.mode == 'big') {
+        if (this.mode == 'fire') {
+            this.big();
+            this.immune = true;
+            this.wait(2, () => {
+                this.immune = false;
+            });
+        }
+        else if (this.mode == 'big') {
             this.small();
             this.immune = true;
             this.wait(2, () => {
                 this.immune = false;
             });
-            // this.immune = {start: this.clock.time};
         } else {
             super.die();
         }

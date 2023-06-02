@@ -36,9 +36,10 @@ class Clock {
 export const clock = new Clock();
 
 export class Map {
-    constructor(mainObject, mobileObjects, stationaryObjects) {
+    constructor(mainObject, mobileObjects, stationaryObjects, end) {
         this.mainObject = mainObject;
-        this.objects = [...stationaryObjects, ...mobileObjects,];
+        this.objects = [...stationaryObjects, ...mobileObjects, end];
+        this.end = end;
         this.objects.forEach((object) => object.activate());
         this.objects.forEach((object) => {object.getChildObjects().forEach((child) => this.objects.push(child))});
         this.camera = {x: 0, y: 0, zoom: 25, screen: SCREEN}; // Zoom defines the number of units in width that the camera can see
@@ -77,12 +78,21 @@ export class Map {
             this.camera.x = this.mainObject.x - (1 - CAMERA_EDGE_RIGHT) * (this.camera.zoom);
         }
     }
+
+    evaluateActions(actions) {
+        actions.forEach((action) => {
+            if (action.action = 'addObject') {
+                this.objects.push(action.object);
+            }
+        })
+    }
     
     step(dt, input) {
-        this.mainObject.step(dt, input);
+        const action = this.mainObject.step(dt, input);
         // Step for active Objects
         const activeObjects = this.getActiveObjects();
-        activeObjects.forEach((object) => {object.step(dt)});
+        const actions = [action, ...activeObjects.map((object) => {object.step(dt)})];
+        this.evaluateActions(actions);
         // Collision detection
         const mobileObjects = [this.mainObject, ...activeObjects.filter((object) => object instanceof MobileObject)]
         const collidableObjects = [
@@ -91,7 +101,10 @@ export class Map {
         ];
         // const collidableObjects = [this.mainObject, ...this.activeMobileObjects, ...this.stationaryObjects.filter((object) => object instanceof HardObject)];
         mobileObjects.forEach((object1) => { collidableObjects.forEach((object2) => {object1.collide(object2)})});
-        return this.mainObject.active;
+        if (this.mainObject.x > this.end.x) {
+            return {'continue': false, 'win': true}
+        }
+        return {'continue': this.mainObject.active, 'win': false}
     }
 }
 
@@ -102,6 +115,7 @@ const keysToActions = {
     "ArrowUp": "up",
     "ArrowDown": "down",
     " ": "up",
+    "Shift": "action",
 }
 
 
@@ -152,16 +166,20 @@ export class Game {
             // const dt = (timestamp - stepStartTimestamp) / 1000;
             // const elapsed = (timestamp - startTimestamp) / 1000;
             // stepStartTimestamp = timestamp;
-            const gameOver = !gameMap.step(dt, input);
+            const output = gameMap.step(dt, input);
             gameMap.draw();
-            if (!gameOver) {
+            if (output.continue) {
                 window.requestAnimationFrame(loop);
             } else {
                 // Draw large text saying Game OVER
                 ctx.fillStyle = "Black";
                 console.log(gameMap.camera.screen.width)
                 ctx.font = `${gameMap.camera.screen.width/16}px Arial`;
-                ctx.fillText(`Game Over`, gameMap.camera.screen.width/3, gameMap.camera.screen.height / 10);
+                if (output.win){
+                    ctx.fillText(`You Win!`, gameMap.camera.screen.width/3, gameMap.camera.screen.height / 10);
+                } else {
+                    ctx.fillText(`Game Over`, gameMap.camera.screen.width/3, gameMap.camera.screen.height / 10);
+                }
                 window.requestAnimationFrame(() => {  });
             }
         }

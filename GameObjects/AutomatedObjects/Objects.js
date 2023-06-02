@@ -13,9 +13,6 @@ export class Mushroom extends AutomatedObject {
         this.tilemap = tilemap;
     }
 
-    async step(dt) {
-        super.step(dt, this.input);
-    }
 
     getRenderSection() {
         return {x:0, y:0, h:16, w:16};
@@ -50,4 +47,31 @@ export class Mushroom1Up extends Mushroom {
             this.active = false;
         }
     }
+}
+
+export class FireFlower extends AutomatedObject {
+    constructor(x, y) {
+        super(x, y, 1, 1, 0,0, {});
+        this.tilemap = tilemap;
+    }
+
+    getRenderSection() {
+        return [
+            // All second row
+            {x:16, y:16, h:16, w:16},
+            {x:32, y:16, h:16, w:16},
+            {x:48, y:16, h:16, w:16},
+            {x:64, y:16, h:16, w:16},
+        ][Math.floor(this.clock.time*10 % 3)];
+    }
+
+    resolveColission(object, side){
+        super.resolveColission(object, side);
+        if (object instanceof Mario) {
+            object.fire();
+            this.active = false;
+        }
+    }
+
+
 }

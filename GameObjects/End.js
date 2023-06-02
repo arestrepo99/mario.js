@@ -1,87 +1,66 @@
-import { clock } from "../GamePlay.js";
+import { Game, clock } from "../GamePlay.js";
+import GameObject from "./GameObject.js";
 
+import {HardBlock} from './StaticObjects.js'
+const tilemap = new Image();
+tilemap.src = "tilemaps/map1.png";
 
-export default class GameObject {
-    constructor(x, y, width, height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.speedX = 0;
-        this.speedY = 0;
-        this.intervals = []
-        this.clock = clock;
-        this.active = false;
+export default class End extends GameObject {
+    // 198, 2
+    constructor(x, y) {
+        super(x, y, 1, 1);
+        this.tilemap = tilemap;
     }
 
-    wait(waitTime, func, repeat = false) {
-        this.intervals.push({ waitTime, func, startTime: this.clock.time, repeat });
+    getChildObjects(){
+        const block = new HardBlock(this.x, this.y,1,1);
+        block.activate();
+        return [block];
     }
-
-    getChildObjects() {
-        return [];
-    }
-
-    activate() {
-        this.active = true;
-    }
-
-    runIntervals() {
-        this.intervals.forEach((interval) => {
-            const { waitTime, func, startTime } = interval;
-            if (this.clock.time - startTime > waitTime) {
-                func();
-                if (!interval.repeat) {
-                    this.intervals.splice(this.intervals.indexOf(interval), 1);
-                } else {
-                    interval.startTime = this.clock.time;
-                }
-
-            }
-        });
-    }
-
-    step(dt){
-        this.runIntervals();
-    }
-
-    getPositionInCtx(camera){
-        const {width, height, aspectRatio} = camera.screen;
+    getRenderSection(){
         return {
-            x: (this.x - camera.x) * width / (camera.zoom),
-            y: height - ((this.y - camera.y) * height / (camera.zoom / aspectRatio)) - (this.height * height / (camera.zoom / aspectRatio)),
-            width: this.width * width / (camera.zoom),
-            height: this.height * height / (camera.zoom / aspectRatio)
+            flag: {x: 7*16, y: 0, w:  2*16, h: 3*16},
+            pole: {x: 8*16, y: 3*16,  w:16, h:16},
+            castle: {x: 9*16, y: 0, w: 5*16, h: 5*16}
         }
     }
 
     draw(ctx, camera) {
-        
-        if (!this.tilemap) {
-            return this.drawFill(ctx, camera);
-        }
-        
+        const {flag, pole, castle} = this.getRenderSection();
+        const {x: xf, y: yf, w: wf, h: hf} = flag;
+        const {x: xp, y: yp, w: wp, h: hp} = pole;
+        const {x: xc, y: yc, w: wc, h: hc} = castle;
+        // const {x, y} = this.getPositionInCtx(camera);
+        const unitSize = camera.screen.width / (camera.zoom);
+        const flagHeight = 11
+
         const {x, y, width, height} = this.getPositionInCtx(camera)
-        const {x: sx, y: sy, w: sw, h: sh} = this.getRenderSection();
         ctx.drawImage(
             this.tilemap,
             // Select section
-            sx, sy, sw, sh,
+            xf, yf, wf, hf,
             // Draw section of tilemap
-            x, y, width, height
+            x - 1*width, y-(flagHeight-1)*unitSize, width*2, height*3
         )
+        // // Draw pole
+        for (let i = 0; i < flagHeight-4; i++) {
+            ctx.drawImage(
+                tilemap,
+                xp, yp, wp, hp,
+                x, y - (i+1)*unitSize, width, height        
+            );
+        }
+        // Draw castle
+        ctx.drawImage(
+            this.tilemap,
+            // Select section
+            xc, yc, wc, hc,
+            // Draw section of tilemap
+            x + 4*unitSize, y - 4*unitSize, width*5, height*5
+        )
+            
+        // );
     }
 
-    drawFill(ctx, camera) {
-        ctx.fillStyle = "red";
-        const {x, y, width, height} = this.getPositionInCtx(camera);
-        ctx.fillRect(
-            x,
-            y,
-            width,
-            height
-        );
-    }
-    resolveColission(object, side) {}
     
 }

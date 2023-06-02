@@ -13,8 +13,8 @@ export default class GameObject {
         this.active = false;
     }
 
-    wait(waitTime, func, repeat = false) {
-        this.intervals.push({ waitTime, func, startTime: this.clock.time, repeat });
+    wait(waitTime, func) {
+        this.intervals.push({ waitTime, func, startTime: this.clock.time });
     }
 
     getChildObjects() {
@@ -29,8 +29,8 @@ export default class GameObject {
         this.intervals.forEach((interval) => {
             const { waitTime, func, startTime } = interval;
             if (this.clock.time - startTime > waitTime) {
-                func();
-                if (!interval.repeat) {
+                const repeat = func()
+                if (!repeat) {
                     this.intervals.splice(this.intervals.indexOf(interval), 1);
                 } else {
                     interval.startTime = this.clock.time;
@@ -56,12 +56,13 @@ export default class GameObject {
 
     draw(ctx, camera) {
         
-        if (!this.tilemap) {
+        const renderSection = this.getRenderSection();
+        if (!this.tilemap || !renderSection) {
             return this.drawFill(ctx, camera);
         }
         
         const {x, y, width, height} = this.getPositionInCtx(camera)
-        const {x: sx, y: sy, w: sw, h: sh} = this.getRenderSection();
+        const {x: sx, y: sy, w: sw, h: sh} = renderSection
         ctx.drawImage(
             this.tilemap,
             // Select section

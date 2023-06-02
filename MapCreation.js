@@ -2,15 +2,16 @@ import Mario from './GameObjects/Mario.js';
 import Turtle from './GameObjects/AutomatedObjects/Turtle.js';
 import Goomba from './GameObjects/AutomatedObjects/Goomba.js'; 
 import { Mushroom1Up , Mushroom } from './GameObjects/AutomatedObjects/Objects.js';
-import { Rock, Brick, QuestionBlock, Pipe, Cloud, Bush, BackgroundHill, HardBlock, JumpingCoin } from './GameObjects/StaticObjects.js';
+import { Rock, Brick, QuestionBlock, ItemQuestionBlock, Pipe, Cloud, Bush, BackgroundHill, HardBlock, JumpingCoin } from './GameObjects/StaticObjects.js';
 import { Map } from './GamePlay.js';
+import End from './GameObjects/End.js';
 
 
 
 
 // MAP CREATION
 const MARIO = new Mario(6, 2);
-
+MARIO.big()
 const trickTurtle = new Turtle(null, null, {right: true})
 trickTurtle.fallAtEdge = true;
 
@@ -23,7 +24,8 @@ const STATICOBJECTS = [
     new BackgroundHill(17, 4, 2),
     new Cloud(19, 11, 2),
     new Brick(20, 5, 1, 1),
-    new QuestionBlock(21, 5, 1, 1, new Mushroom(null, null, {right: true})),
+    // new QuestionBlock(21, 5, 1, 1, new Mushroom(null, null, {right: true})),
+    new ItemQuestionBlock(21, 5),
     new Brick(22, 5, 1, 1),
     new QuestionBlock(22, 9, 1, 1, new JumpingCoin()),
     new QuestionBlock(23, 5, 1, 1, new JumpingCoin()),
@@ -45,7 +47,8 @@ const STATICOBJECTS = [
     new Bush(71, 2, 4),
     new Cloud(75, 10, 4),
     new Brick(77, 5, 1, 1),
-    new QuestionBlock(78, 5, 1, 1, new Mushroom(null, null, {right: true})),
+    // new QuestionBlock(78, 5, 1, 1, new Mushroom(null, null, {right: true})),
+    new ItemQuestionBlock(78, 5),
     new Brick(79, 5, 1, 1),
     new Brick(80, 9, 8, 1),
     new Cloud(84, 11, 3),
@@ -60,7 +63,8 @@ const STATICOBJECTS = [
     new QuestionBlock(106, 5, 1, 1, new JumpingCoin()),
     new Bush(107, 2, 5),
     new QuestionBlock(109, 5, 1, 1, new JumpingCoin()),
-    new QuestionBlock(109, 9, 1, 1, new Mushroom(null, null, {right: true})),
+    // new QuestionBlock(109, 9, 1, 1, new Mushroom(null, null, {right: true})),
+    new ItemQuestionBlock(109, 9,),
     new QuestionBlock(112, 5, 1, 1, new JumpingCoin()),
     new BackgroundHill(113, 4, 2),
     new Cloud(115, 11, 2),
@@ -115,6 +119,9 @@ const STATICOBJECTS = [
     new HardBlock(187, 8, 2, 1),
     new HardBlock(188, 9, 1, 1),
     new HardBlock(189, 2, 1, 8),
+    new BackgroundHill(194, 5, 3),
+    new BackgroundHill(209, 4, 2),
+    new Cloud(200, 10, 2),
 ];
 
 // toatal.toShell();
@@ -136,6 +143,9 @@ const MOBILEOBJECTS = [
     new Goomba(122, 2, {left: true}),
     new Goomba(124, 2, {left: true}),
 
+    new Goomba(172, 2, {left: true}),
+    new Goomba(169, 2, {left: true}),
+
 
     // new Turtle(13, 2, {left: true}),
     // new Turtle(10, 2, {left: true}),
@@ -151,6 +161,8 @@ const MOBILEOBJECTS = [
 //             MARIO.x = object.x + object.width + 2;
 //         }
 //     }
-// })
 
-export default new Map(MARIO, MOBILEOBJECTS, STATICOBJECTS);
+// })
+const END = new End(198, 2)
+
+export default new Map(MARIO, MOBILEOBJECTS, STATICOBJECTS, END);

@@ -276,6 +276,43 @@ export class QuestionBlock extends HardObject {
 
 }
 
+import { Mushroom, FireFlower } from "./AutomatedObjects/Objects.js";
+
+// If mario is small content is Mushroom otherwise it is a Flower
+export class ItemQuestionBlock extends QuestionBlock {
+    
+    constructor(x, y) {
+        super(x, y, 1, 1, {active:false});
+    }
+
+    getChildObjects() {
+        this.mushroom = new Mushroom(this.x, this.y, {right: true});
+        this.mushroom.active = false;
+        this.flower  = new FireFlower(this.x, this.y)
+        this.flower.active = false;
+        return [this.mushroom, this.flower];
+    }
+
+    setContent(player) {
+        if (player.mode == 'small') {
+            this.content = this.mushroom;
+        } else {
+            this.content = this.flower;
+        }
+    }
+
+    hitBottom(player) {
+        this.setContent(player);
+        super.hitBottom(player);
+    }
+
+    hitTop(player) {
+        this.setContent(player);
+        super.hitTop(player);
+    }
+}
+
+
 export class HardBlock extends HardObject {
     getRenderSection(){
         return {x:0, y:16, w:16, h:16};
