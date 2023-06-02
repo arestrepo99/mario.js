@@ -3,7 +3,7 @@ import MobileObject from './MobileObject.js';
 const tilemap = new Image();
 tilemap.src = "tilemaps/mario.png";
 
-const MARIOACCEL = 100;
+const MARIOACCEL = 80;
 const MARIOJUMPSPEED = 30;
 
 const renderSectionMap = {

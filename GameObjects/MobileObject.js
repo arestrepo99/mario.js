@@ -50,7 +50,6 @@ export default class MobileObject extends GameObject {
         // Reset standingOn (will be reset by collision detection)
         this.standingOn = [];
 
-        if (this.y < 0) {this.active = false;}
         // Set looking direction for drawing
         if (input['left']) {
             this.lookingDirection = 'left';

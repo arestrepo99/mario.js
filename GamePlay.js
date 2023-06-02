@@ -19,15 +19,15 @@ class Clock {
     }
     update(timestamp) { 
         const dt = (timestamp - this.stepStartTime) / 1000;
-        if (dt > 0.05) {
-            return 0.05;
-        }
         this.stepStartTime = timestamp;
         this.time = (timestamp - this.startTime) / 1000;
         // Update FPS 2 times per second
         if (this.time - this.lastFpsUpdate > 0.5) {
             this.fps = 1 / dt;
             this.lastFpsUpdate = this.time;
+        }
+        if (dt > 0.05) {
+            return 0;
         }
         return dt;
     }
@@ -47,9 +47,10 @@ export class Map {
     getActiveObjects() {
         const activeObjects = this.objects.filter((object) => object.active);
         activeObjects.forEach((object) => {object.draw(ctx, this.camera)});
-        // Only objects 5 units before and after camera are active
-        // 
-        return activeObjects //.filter((object) => object.x > this.camera.x - 5 && object.x < this.camera.x + this.camera.zoom + 5);
+        return activeObjects.filter((object) => 
+            object.x + object.width > this.camera.x - 5 && object.x < this.camera.x + this.camera.zoom + 5
+            
+        );
     }
 
 
@@ -156,7 +157,11 @@ export class Game {
             if (!gameOver) {
                 window.requestAnimationFrame(loop);
             } else {
-                console.log("Game Over");
+                // Draw large text saying Game OVER
+                ctx.fillStyle = "Red";
+                console.log(gameMap.camera.screen.width)
+                ctx.font = `${gameMap.camera.screen.width/6}px Arial`;
+                ctx.fillText(`Game Over`, 100, gameMap.camera.screen.height / 2);
                 window.requestAnimationFrame(() => {  });
             }
         }

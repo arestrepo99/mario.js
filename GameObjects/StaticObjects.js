@@ -147,8 +147,6 @@ export class JumpingCoin extends StaticObject {
 
 
 export class HardObject extends StaticObject {
-
-
     hitBottom(player) {}
 
     hitTop(player) {}
@@ -165,6 +163,7 @@ export class HardObject extends StaticObject {
             }
         }
     }
+
 }
 
 export class Rock extends HardObject {
