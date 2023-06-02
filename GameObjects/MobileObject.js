@@ -92,7 +92,7 @@ export default class MobileObject extends GameObject {
                 if (rightTime<0 && rightTime>time) {time = rightTime; side = "right";}
                 const leftTime = (object.x + object.width - this.x) / (this.speedX - object.speedX);
                 if (leftTime<0 && leftTime>time) {time = leftTime; side = "left";}
-                console.log(object, this, side)           
+                // console.log(object, this, side)           
                 return {time, side};     
             }
         }

@@ -32,9 +32,6 @@ export default class Turtle extends AutomatedObject {
 
     activate() {
         super.activate();
-        // this.wait(0.5, () => {
-        //     console.log(this.speedX);
-        // }, true);
     }
 
     toShell() {
@@ -85,7 +82,6 @@ export default class Turtle extends AutomatedObject {
                     }
                     if (this.mode === 'shell') {
                         if (this.input.right) {
-                            console.log('Mario dies')
                             object.die();
                         } else {
                             this.input.left = true;
@@ -103,7 +99,6 @@ export default class Turtle extends AutomatedObject {
                 }
             }
         }
-        // console.log(this.x, this.y)
     }
 
     die() {

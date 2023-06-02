@@ -11,14 +11,19 @@ const CAMERA_EDGE_LEFT = 0.2;
 
 class Clock {
     start() {
-        this.startTime = window.performance.now()
+        this.startTime = window.performance.now() / 1000;
+        console.log(window.performance.now())
         this.time = 0
         this.stepStartTime = 0
         this.lastFpsUpdate = 0
         this.fps = 0
     }
     update(timestamp) { 
+        console.log(timestamp)
         const dt = (timestamp - this.stepStartTime) / 1000;
+        if (dt > 0.05) {
+            return 0.05;
+        }
         this.stepStartTime = timestamp;
         this.time = (timestamp - this.startTime) / 1000;
         // Update FPS 2 times per second
