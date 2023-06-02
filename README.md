@@ -3,10 +3,14 @@ sudo apt -y update
 sudo apt -y install nano
 sudo apt -y install git
 
-# Set up git pull refresh
+# Set Up repository
 git clone https://github.com/arestrepo99/mario.js.git
 
+# Set up auto refresh pull from repositry
+Run
+```
 crontab -e
+```
 #### Add to config
 ```
 */5 * * * * cd ~/mario.js && git pull
@@ -55,7 +59,10 @@ server {
 }
 ```
 
+Reload nginx config
+```
 sudo nginx -s reload
+```
 
 Replace `/path/to/your/app` with the actual path to your app's source code directory.
 
