@@ -7,12 +7,13 @@ sudo apt -y install git
 git clone https://github.com/arestrepo99/mario.js.git
 
 crontab -e
-# add to this file to run every 5 minutes
+#### Add to config
+```
 */5 * * * * cd ~/mario.js && git pull
+```
 
 
-
-// Nginx Server Setup
+# Nginx Server Setup
 To set up a production-ready single-page HTTP server on the cloud using Nginx, you can follow these steps:
 
 1. **Install Nginx:** Start by installing Nginx on your Ubuntu instance. Run the following commands:
