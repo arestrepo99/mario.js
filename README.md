@@ -1,3 +1,6 @@
+http://cloud.arec.me/mario/
+
+
 # Instance setup
 sudo apt -y update
 sudo apt -y install nano

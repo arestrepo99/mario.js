@@ -59,6 +59,7 @@ export default class GameObject {
     draw(ctx, camera) {
         
         const renderSection = this.getRenderSection();
+        // return this.drawFill(ctx, camera);
         if (!this.tilemap || !renderSection) {
             return this.drawFill(ctx, camera);
         }
@@ -84,6 +85,9 @@ export default class GameObject {
             height
         );
     }
-    resolveColission(object, side) {}
+    
+    resolveColission(object, side) {
+        
+    }
     
 }
