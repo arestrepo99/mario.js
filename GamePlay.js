@@ -155,9 +155,11 @@ export class Game {
         // Mouse Down
         window.addEventListener("touchstart", (event) => {
             this.input[event.target.id] = true;
+            event.target.classList.add("active");
         });
         window.addEventListener("touchend", (event) => {
             this.input[event.target.id] = false;
+            event.target.classList.remove("active");
         });
     }
 
